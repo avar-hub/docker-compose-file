@@ -1,0 +1,99 @@
+version: "3"
+
+services:
+
+  database:
+    image: mysql
+    container_name: mysql-db
+    environment:
+      - MYSQL_ROOT_PASSWORD=admin
+      - MYSQL_DATABASE=socials_user;user_profile;user_image
+#      - MYSQL_DATABASE=user_profile
+#      - MYSQL_DATABASE=user_image
+    ports:
+      - "3307:3306"
+#    volumes:
+#      - demo:/data/db
+    networks:
+      - socials-network
+
+  naming-server:
+    image: naming-server
+    container_name: naming-server-service
+    ports:
+      - "8761:8761"
+    networks:
+      - socials-network
+
+  gateway:
+    image: gateway
+    container_name: gateway-service
+#    restart: always
+    ports:
+      - "8080:8080"
+    networks:
+      - socials-network
+    depends_on:
+      - naming-server
+
+  identity-service:
+    image: identity-service
+    container_name: identity-service
+#    restart: always
+    ports:
+      - "6969:6969"
+    networks:
+      - socials-network
+    depends_on:
+      - naming-server
+      - gateway
+      - database
+    environment:
+      - MYSQL_HOST=mysql-db
+      - MYSQL_USER=root
+      - MYSQL_PASSWORD=admin
+      - MYSQL_PORT=3306
+      - MYSQL_DATABASE=socials_user
+
+  image-service:
+    image: image-service
+    container_name: image-service
+#    restart: always
+    ports:
+      - "8085:8085"
+    networks:
+      - socials-network
+    depends_on:
+      - naming-server
+      - gateway
+      - database
+    environment:
+      - MYSQL_HOST=mysql-db
+      - MYSQL_USER=root
+      - MYSQL_PASSWORD=admin
+      - MYSQL_PORT=3306
+      - MYSQL_DATABASE=user_image
+
+
+  user-profile:
+    image: user-profile
+    container_name: user-profile-service
+#    restart: always
+    ports:
+      - "8082:8082"
+    networks:
+      - socials-network
+    depends_on:
+      - naming-server
+      - gateway
+      - database
+    environment:
+      - MYSQL_HOST=mysql-db
+      - MYSQL_USER=root
+      - MYSQL_PASSWORD=admin
+      - MYSQL_PORT=3306
+      - MYSQL_DATABASE=user_profile
+
+networks:
+  socials-network:
+    driver: bridge
