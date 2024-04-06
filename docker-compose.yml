@@ -2,18 +2,44 @@ version: "3"
 
 services:
 
-  database:
+  redis:
+    image: redis
+    container_name: redis-service
+    ports:
+      - "6379:6379"
+    networks:
+      - socials-network
+
+  database1:
     image: mysql
-    container_name: mysql-db
+    container_name: mysql-db1
     environment:
       - MYSQL_ROOT_PASSWORD=admin
-      - MYSQL_DATABASE=socials_user;user_profile;user_image
-#      - MYSQL_DATABASE=user_profile
-#      - MYSQL_DATABASE=user_image
+      - MYSQL_DATABASE=socials_user
     ports:
       - "3307:3306"
-#    volumes:
-#      - demo:/data/db
+    networks:
+      - socials-network
+
+  database2:
+    image: mysql
+    container_name: mysql-db2
+    environment:
+      - MYSQL_ROOT_PASSWORD=admin
+      - MYSQL_DATABASE=user_image
+    ports:
+      - "3308:3306"
+    networks:
+      - socials-network
+
+  database3:
+    image: mysql
+    container_name: mysql-db3
+    environment:
+      - MYSQL_ROOT_PASSWORD=admin
+      - MYSQL_DATABASE=user_profile
+    ports:
+      - "3309:3306"
     networks:
       - socials-network
 
@@ -28,7 +54,7 @@ services:
   gateway:
     image: gateway
     container_name: gateway-service
-#    restart: always
+    restart: always
     ports:
       - "8080:8080"
     networks:
@@ -39,7 +65,7 @@ services:
   identity-service:
     image: identity-service
     container_name: identity-service
-#    restart: always
+    restart: always
     ports:
       - "6969:6969"
     networks:
@@ -47,7 +73,7 @@ services:
     depends_on:
       - naming-server
       - gateway
-      - database
+      - database1
     environment:
       - MYSQL_HOST=mysql-db
       - MYSQL_USER=root
@@ -58,7 +84,7 @@ services:
   image-service:
     image: image-service
     container_name: image-service
-#    restart: always
+    restart: always
     ports:
       - "8085:8085"
     networks:
@@ -66,7 +92,7 @@ services:
     depends_on:
       - naming-server
       - gateway
-      - database
+      - database2
     environment:
       - MYSQL_HOST=mysql-db
       - MYSQL_USER=root
@@ -78,7 +104,7 @@ services:
   user-profile:
     image: user-profile
     container_name: user-profile-service
-#    restart: always
+    restart: always
     ports:
       - "8082:8082"
     networks:
@@ -86,7 +112,7 @@ services:
     depends_on:
       - naming-server
       - gateway
-      - database
+      - database3
     environment:
       - MYSQL_HOST=mysql-db
       - MYSQL_USER=root
